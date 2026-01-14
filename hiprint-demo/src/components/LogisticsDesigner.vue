@@ -28,6 +28,12 @@
         编辑数据
       </el-button>
 
+      <el-divider direction="vertical" />
+
+      <el-button type="success" @click="handleExportPDF" :icon="Download">
+        导出 PDF
+      </el-button>
+
       <div class="spacer"></div>
 
       <el-tag type="success">{{ paperType }}</el-tag>
@@ -48,11 +54,18 @@
       <!-- 右侧参数设置 -->
       <div class="right-panel">
         <el-tabs v-model="activeTab" type="border-card">
+          <el-tab-pane label="纸张规格" name="paper">
+            <PaperSizeSelector
+              v-model="paperSize"
+              @change="handlePaperSizeChange"
+            />
+          </el-tab-pane>
           <el-tab-pane label="参数设置" name="setting">
             <div id="PrintElementOptionSetting" class="setting-container"></div>
           </el-tab-pane>
           <el-tab-pane label="模板管理" name="template">
             <TemplateManager
+              ref="templateManagerRef"
               :hiprint-template="hiprintTemplate"
               @template-loaded="handleTemplateLoaded"
               @template-cleared="handleTemplateCleared"
@@ -204,24 +217,33 @@ import {
   RefreshLeft,
   RefreshRight,
   Edit,
-  Plus
+  Plus,
+  Download
 } from '@element-plus/icons-vue'
 import { hiprint, defaultElementTypeProvider } from 'vue-plugin-hiprint'
 import DraggableModules from './DraggableModules.vue'
 import TemplateManager from './TemplateManager.vue'
+import PaperSizeSelector from './PaperSizeSelector.vue'
 import { logisticsPrintData } from '../utils/logisticsData'
 import { defaultLogisticsTemplate } from '../utils/defaultTemplate'
+import { downloadPDF, checkServiceHealth } from '../utils/hiprintService'
 
 const emit = defineEmits(['print'])
 
 // 状态
 const hiprintTemplate = ref(null)
-const activeTab = ref('setting')
+const activeTab = ref('paper')
 const showDataDialog = ref(false)
 const printData = ref(JSON.parse(JSON.stringify(logisticsPrintData)))
 const canUndo = ref(false)
 const canRedo = ref(false)
-const paperType = ref('A4')
+const paperType = ref('10x15')
+const paperSize = ref({
+  width: 10,
+  height: 15,
+  paperType: '10x15'
+})
+const templateManagerRef = ref(null)
 const activeCollapse = ref(['sender', 'receiver', 'waybill'])
 
 // 初始化设计器
@@ -368,13 +390,77 @@ function resetData() {
 // 模板加载完成
 function handleTemplateLoaded(template) {
   if (template && template.panels && template.panels[0]) {
-    paperType.value = template.panels[0].paperType || 'A4'
+    const panel = template.panels[0]
+    paperType.value = panel.paperType || '10x15'
+    paperSize.value = {
+      width: panel.width || 10,
+      height: panel.height || 15,
+      paperType: panel.paperType || '10x15'
+    }
   }
 }
 
-// 模板清空完成
 function handleTemplateCleared() {
-  paperType.value = 'A4'
+  paperType.value = '10x15'
+  paperSize.value = {
+    width: 10,
+    height: 15,
+    paperType: '10x15'
+  }
+}
+
+async function handleExportPDF() {
+  if (!hiprintTemplate.value) {
+    ElMessage.error('设计器未初始化')
+    return
+  }
+
+  try {
+    const isServiceAvailable = await checkServiceHealth()
+    if (!isServiceAvailable) {
+      ElMessage.warning('hiprint 服务未启动，请先启动后端服务')
+      return
+    }
+
+    const template = hiprintTemplate.value.getJson()
+    const filename = `logistics_${Date.now()}.pdf`
+
+    ElMessage.info('正在生成 PDF，请稍候...')
+    await downloadPDF(template, printData.value, filename)
+    ElMessage.success('PDF 导出成功')
+  } catch (e) {
+    ElMessage.error('导出 PDF 失败: ' + e.message)
+  }
+}
+
+function handlePaperSizeChange(size) {
+  if (!hiprintTemplate.value || !size) {
+    return
+  }
+
+  try {
+    const templateJson = hiprintTemplate.value.getJson()
+    if (templateJson && templateJson.panels && templateJson.panels[0]) {
+      templateJson.panels[0].width = size.width
+      templateJson.panels[0].height = size.height
+      templateJson.panels[0].paperType = size.paperType
+
+      hiprintTemplate.value.clear()
+      nextTick(() => {
+        hiprintTemplate.value.design('#hiprint-printTemplate', { template: templateJson })
+        hiprintTemplate.value.update(templateJson)
+        paperType.value = size.paperType || `${size.width}x${size.height}`
+
+        if (templateManagerRef.value) {
+          templateManagerRef.value.setCurrentPaperSize(size)
+        }
+
+        ElMessage.success(`纸张尺寸已更新为 ${size.width}×${size.height}cm`)
+      })
+    }
+  } catch (e) {
+    ElMessage.error('更新纸张尺寸失败: ' + e.message)
+  }
 }
 
 // 清理

@@ -7,11 +7,11 @@ export const defaultLogisticsTemplate = {
   panels: [
     {
       index: 0,
-      paperType: 'A4',
-      height: 297,
-      width: 210,
-      paperHeader: 10,
-      paperFooter: 10,
+      paperType: '10x15',
+      height: 15,
+      width: 10,
+      paperHeader: 5,
+      paperFooter: 5,
       printElements: [
         // 公司 Logo
         {
