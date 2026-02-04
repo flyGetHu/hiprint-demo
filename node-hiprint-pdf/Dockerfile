@@ -51,8 +51,12 @@ RUN yarn add puppeteer@13.5.0
 # 复制项目文件到工作目录
 COPY . .
 
-# 暴露容器端口
-EXPOSE 3000
+# 设置默认端口
+ENV PORT=3001
+ENV FASTIFY_PORT=3001
+
+# 暴露容器端口（默认3001，可通过docker-compose覆盖）
+EXPOSE 3001
 
 # 运行Node.js应用
 CMD ["npm", "run", "start"]

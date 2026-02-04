@@ -93,7 +93,7 @@
         <el-table-column label="纸张尺寸" width="100">
           <template #default="{ row }">
             <el-tag size="small" type="info">
-              {{ row.paperSize?.width }}×{{ row.paperSize?.height }}cm
+              {{ (row.paperSize?.width / 10).toFixed(0) }}×{{ (row.paperSize?.height / 10).toFixed(0) }}cm
             </el-tag>
           </template>
         </el-table-column>
@@ -159,8 +159,8 @@ const props = defineProps({
 const emit = defineEmits(['template-loaded', 'template-cleared'])
 
 const currentPaperSize = ref({
-  width: 10,
-  height: 15,
+  width: 100,
+  height: 150,
   paperType: '10x15'
 })
 
@@ -244,8 +244,8 @@ function getPaperSizeFromTemplate(template) {
     }
   }
   return {
-    width: 10,
-    height: 15,
+    width: 100,
+    height: 150,
     paperType: '10x15'
   }
 }

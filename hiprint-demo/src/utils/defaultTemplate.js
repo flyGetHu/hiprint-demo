@@ -8,10 +8,10 @@ export const defaultLogisticsTemplate = {
     {
       index: 0,
       paperType: '10x15',
-      height: 15,
-      width: 10,
-      paperHeader: 5,
-      paperFooter: 5,
+      height: 150,
+      width: 100,
+      paperHeader: 0,
+      paperFooter: 0,
       printElements: [
         // 公司 Logo
         {
@@ -31,69 +31,84 @@ export const defaultLogisticsTemplate = {
           options: {
             left: 60,
             top: 5,
-            height: 10,
-            width: 70,
-            title: '顺丰速运 SF EXPRESS',
-            fontSize: 18,
+            height: 15,
+            width: 80,
+            title: '顺丰速运',
+            fontSize: 14,
             fontWeight: 'bold',
-            textAlign: 'center',
-            color: '#409EFF'
+            textAlign: 'left',
+            color: '#E6550D'
+          },
+          printElementType: { title: '文本', tid: 'defaultModule.text' }
+        },
+        // 公司英文名
+        {
+          options: {
+            left: 60,
+            top: 20,
+            height: 12,
+            width: 80,
+            title: 'SF EXPRESS',
+            fontSize: 10,
+            textAlign: 'left',
+            color: '#E6550D'
           },
           printElementType: { title: '文本', tid: 'defaultModule.text' }
         },
         // 运单号标签
         {
           options: {
-            left: 140,
+            left: 200,
             top: 5,
-            height: 8,
-            width: 30,
+            height: 10,
+            width: 80,
             title: '运单号',
-            fontSize: 10,
-            textAlign: 'center'
+            fontSize: 9,
+            textAlign: 'right',
+            color: '#666'
           },
           printElementType: { title: '文本', tid: 'defaultModule.text' }
         },
         // 运单号
         {
           options: {
-            left: 140,
-            top: 13,
-            height: 12,
-            width: 65,
-            title: 'waybill.no',
+            left: 180,
+            top: 16,
+            height: 14,
+            width: 100,
             field: 'waybill.no',
-            fontSize: 16,
+            fontSize: 12,
             fontWeight: 'bold',
-            textAlign: 'center'
+            textAlign: 'right'
           },
           printElementType: { title: '文本', tid: 'defaultModule.text' }
         },
         // 条形码
         {
           options: {
-            left: 140,
-            top: 25,
-            height: 25,
-            width: 60,
-            title: 'waybill.no',
+            left: 180,
+            top: 32,
+            height: 28,
+            width: 100,
             field: 'waybill.no',
             textAlign: 'center'
           },
           printElementType: { title: '条形码', tid: 'defaultModule.barcode' }
         },
+
+        // ========== 发货人/收货人区域 ==========
         // 发货人标签
         {
           options: {
             left: 5,
-            top: 40,
-            height: 7,
-            width: 95,
+            top: 68,
+            height: 12,
+            width: 130,
             title: '发货人信息',
-            fontSize: 12,
+            fontSize: 10,
             fontWeight: 'bold',
-            borderBottom: '2px solid #333',
-            paddingBottom: '3px'
+            backgroundColor: '#f0f0f0',
+            padding: '2pt'
           },
           printElementType: { title: '文本', tid: 'defaultModule.text' }
         },
@@ -101,25 +116,25 @@ export const defaultLogisticsTemplate = {
         {
           options: {
             left: 5,
-            top: 49,
-            height: 7,
-            width: 45,
-            title: '发货人: sender.name',
+            top: 82,
+            height: 10,
+            width: 130,
+            title: '姓名:',
             field: 'sender.name',
-            fontSize: 10
+            fontSize: 9
           },
           printElementType: { title: '文本', tid: 'defaultModule.text' }
         },
         // 发货人电话
         {
           options: {
-            left: 55,
-            top: 49,
-            height: 7,
-            width: 45,
-            title: '电话: sender.mobile',
+            left: 5,
+            top: 93,
+            height: 10,
+            width: 130,
+            title: '电话:',
             field: 'sender.mobile',
-            fontSize: 10
+            fontSize: 9
           },
           printElementType: { title: '文本', tid: 'defaultModule.text' }
         },
@@ -127,213 +142,142 @@ export const defaultLogisticsTemplate = {
         {
           options: {
             left: 5,
-            top: 57,
-            height: 15,
-            width: 95,
-            title: '地址: sender.province sender.city sender.district sender.address',
-            field: 'sender.province, sender.city, sender.district, sender.address',
-            fontSize: 9,
-            lineHeight: 18
+            top: 104,
+            height: 28,
+            width: 130,
+            title: '地址:',
+            field: 'sender.address',
+            fontSize: 8,
+            lineHeight: 14
           },
           printElementType: { title: '长文本', tid: 'defaultModule.longText' }
         },
+
         // 收货人标签
         {
           options: {
-            left: 105,
-            top: 40,
-            height: 7,
-            width: 100,
+            left: 145,
+            top: 68,
+            height: 12,
+            width: 135,
             title: '收货人信息',
-            fontSize: 12,
+            fontSize: 10,
             fontWeight: 'bold',
-            borderBottom: '2px solid #333',
-            paddingBottom: '3px'
+            backgroundColor: '#f0f0f0',
+            padding: '2pt'
           },
           printElementType: { title: '文本', tid: 'defaultModule.text' }
         },
         // 收货人姓名
         {
           options: {
-            left: 105,
-            top: 49,
-            height: 7,
-            width: 45,
-            title: '收货人: receiver.name',
+            left: 145,
+            top: 82,
+            height: 10,
+            width: 135,
+            title: '姓名:',
             field: 'receiver.name',
-            fontSize: 10
+            fontSize: 9
           },
           printElementType: { title: '文本', tid: 'defaultModule.text' }
         },
         // 收货人电话
         {
           options: {
-            left: 155,
-            top: 49,
-            height: 7,
-            width: 50,
-            title: '电话: receiver.mobile',
+            left: 145,
+            top: 93,
+            height: 10,
+            width: 135,
+            title: '电话:',
             field: 'receiver.mobile',
-            fontSize: 10
+            fontSize: 9
           },
           printElementType: { title: '文本', tid: 'defaultModule.text' }
         },
         // 收货人地址
         {
           options: {
-            left: 105,
-            top: 57,
-            height: 15,
-            width: 100,
-            title: '地址: receiver.province receiver.city receiver.district receiver.address',
-            field: 'receiver.province, receiver.city, receiver.district, receiver.address',
-            fontSize: 9,
-            lineHeight: 18
+            left: 145,
+            top: 104,
+            height: 28,
+            width: 135,
+            title: '地址:',
+            field: 'receiver.address',
+            fontSize: 8,
+            lineHeight: 14
           },
           printElementType: { title: '长文本', tid: 'defaultModule.longText' }
         },
+
+        // ========== 运单详情区域 ==========
         // 运单信息标签
         {
           options: {
             left: 5,
-            top: 77,
-            height: 7,
-            width: 200,
+            top: 138,
+            height: 12,
+            width: 275,
             title: '运单详情',
-            fontSize: 12,
+            fontSize: 10,
             fontWeight: 'bold',
-            borderBottom: '2px solid #333',
-            paddingBottom: '3px'
-          },
-          printElementType: { title: '文本', tid: 'defaultModule.text' }
-        },
-        // 服务类型
-        {
-          options: {
-            left: 5,
-            top: 86,
-            height: 7,
-            width: 50,
-            title: '服务: waybill.serviceType',
-            field: 'waybill.serviceType',
-            fontSize: 10
+            backgroundColor: '#f0f0f0',
+            padding: '2pt'
           },
           printElementType: { title: '文本', tid: 'defaultModule.text' }
         },
         // 付款方式
         {
           options: {
-            left: 60,
-            top: 86,
-            height: 7,
-            width: 50,
-            title: '付款: waybill.paymentType',
+            left: 5,
+            top: 152,
+            height: 10,
+            width: 65,
+            title: '付款:',
             field: 'waybill.paymentType',
-            fontSize: 10
+            fontSize: 9
           },
           printElementType: { title: '文本', tid: 'defaultModule.text' }
         },
         // 重量
         {
           options: {
-            left: 115,
-            top: 86,
-            height: 7,
-            width: 40,
-            title: '重量: waybill.weight kg',
+            left: 75,
+            top: 152,
+            height: 10,
+            width: 65,
+            title: '重量:',
             field: 'waybill.weight',
-            fontSize: 10
+            fontSize: 9
           },
           printElementType: { title: '文本', tid: 'defaultModule.text' }
         },
         // 运费
         {
           options: {
-            left: 160,
-            top: 86,
-            height: 7,
-            width: 45,
-            title: '运费: ¥waybill.freight',
+            left: 145,
+            top: 152,
+            height: 10,
+            width: 65,
+            title: '运费:',
             field: 'waybill.freight',
-            fontSize: 10
+            fontSize: 9
           },
           printElementType: { title: '文本', tid: 'defaultModule.text' }
         },
-        // 商品列表标签
-        {
-          options: {
-            left: 5,
-            top: 98,
-            height: 7,
-            width: 200,
-            title: '商品清单',
-            fontSize: 12,
-            fontWeight: 'bold',
-            borderBottom: '2px solid #333',
-            paddingBottom: '3px'
-          },
-          printElementType: { title: '文本', tid: 'defaultModule.text' }
-        },
-        // 商品表格
-        {
-          options: {
-            left: 5,
-            top: 107,
-            height: 50,
-            width: 200,
-            field: 'products',
-            tableHeaderRepeat: 'first',
-            columns: [
-              [
-                {
-                  title: '序号',
-                  field: 'no',
-                  width: 20,
-                  align: 'center',
-                  colspan: 1,
-                  rowspan: 1
-                },
-                {
-                  title: '商品名称',
-                  field: 'name',
-                  width: 80,
-                  align: 'left',
-                  colspan: 1,
-                  rowspan: 1
-                },
-                {
-                  title: '规格',
-                  field: 'spec',
-                  width: 60,
-                  align: 'left',
-                  colspan: 1,
-                  rowspan: 1
-                },
-                {
-                  title: '数量',
-                  field: 'quantity',
-                  width: 20,
-                  align: 'center',
-                  colspan: 1,
-                  rowspan: 1
-                }
-              ]
-            ]
-          },
-          printElementType: { title: '表格', tid: 'defaultModule.table' }
-        },
+
+        // ========== 备注区域 ==========
         // 备注标签
         {
           options: {
             left: 5,
-            top: 162,
-            height: 7,
-            width: 200,
+            top: 168,
+            height: 12,
+            width: 275,
             title: '备注信息',
-            fontSize: 12,
+            fontSize: 10,
             fontWeight: 'bold',
-            borderBottom: '2px solid #333',
-            paddingBottom: '3px'
+            backgroundColor: '#f0f0f0',
+            padding: '2pt'
           },
           printElementType: { title: '文本', tid: 'defaultModule.text' }
         },
@@ -341,51 +285,53 @@ export const defaultLogisticsTemplate = {
         {
           options: {
             left: 5,
-            top: 171,
-            height: 20,
-            width: 200,
-            title: 'remark',
+            top: 182,
+            height: 30,
+            width: 180,
             field: 'remark',
-            fontSize: 9,
-            lineHeight: 18
+            fontSize: 8,
+            lineHeight: 14
           },
           printElementType: { title: '长文本', tid: 'defaultModule.longText' }
         },
+
         // 二维码标签
         {
           options: {
-            left: 150,
-            top: 195,
-            height: 7,
-            width: 55,
+            left: 220,
+            top: 168,
+            height: 10,
+            width: 60,
             title: '扫码追踪',
-            fontSize: 10,
-            textAlign: 'center'
+            fontSize: 8,
+            textAlign: 'center',
+            color: '#666'
           },
           printElementType: { title: '文本', tid: 'defaultModule.text' }
         },
         // 二维码
         {
           options: {
-            left: 160,
-            top: 202,
-            height: 35,
-            width: 35,
-            title: 'tracking.qrcode',
+            left: 225,
+            top: 180,
+            height: 45,
+            width: 45,
             field: 'tracking.qrcode',
             textAlign: 'center'
           },
           printElementType: { title: '二维码', tid: 'defaultModule.qrcode' }
         },
+
+        // ========== 底部区域 ==========
         // 打印时间
         {
           options: {
             left: 5,
-            top: 245,
-            height: 6,
-            width: 140,
+            top: 230,
+            height: 10,
+            width: 180,
             title: '打印时间: 2024-01-15 10:30:00',
-            fontSize: 8,
+            fontSize: 7,
             color: '#999'
           },
           printElementType: { title: '文本', tid: 'defaultModule.text' }
@@ -394,12 +340,12 @@ export const defaultLogisticsTemplate = {
         {
           options: {
             left: 5,
-            top: 255,
-            height: 15,
-            width: 140,
+            top: 242,
+            height: 22,
+            width: 275,
             title: '温馨提示: 请在签收前检查包裹完整性，如有问题请及时联系客服。签收后视为商品完好。',
             fontSize: 7,
-            lineHeight: 14,
+            lineHeight: 12,
             color: '#666'
           },
           printElementType: { title: '长文本', tid: 'defaultModule.longText' }

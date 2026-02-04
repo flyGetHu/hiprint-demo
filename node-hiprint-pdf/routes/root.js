@@ -1,4 +1,5 @@
 import PuppeteerHtmlExport from "../lib/puppeteer-html-export.js";
+import browserPool from "../lib/browser-pool.js";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
@@ -25,9 +26,20 @@ const randomId = () => {
 };
 
 export default async function (fastify, opts) {
+  // 健康检查
   fastify.get("/", async function (request, reply) {
-    return "微信公众号: 不简说" + todayDir();
+    return { status: "ok", message: "node-hiprint-pdf service" };
   });
+
+  // 浏览器池状态
+  fastify.get("/status", async function (request, reply) {
+    return {
+      code: 1,
+      msg: "ok",
+      data: browserPool.getStatus()
+    };
+  });
+
   fastify.get("/template", async function (request, reply) {
     const cacheId = request.query.id;
     const value = await new Promise((resolve, reject) => {

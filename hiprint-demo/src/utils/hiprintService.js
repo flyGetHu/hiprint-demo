@@ -4,7 +4,7 @@
  */
 
 // hiprint 服务地址（可根据环境变量配置）
-const HIPRINT_SERVICE_URL = import.meta.env.VITE_HIPRINT_SERVICE_URL || 'http://localhost:3000'
+let HIPRINT_SERVICE_URL = import.meta.env.VITE_HIPRINT_SERVICE_URL || 'http://localhost:3000'
 
 /**
  * 生成 PDF

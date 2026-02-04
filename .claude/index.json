@@ -1,0 +1,141 @@
+{
+  "timestamp": "2026-02-04T13:50:11+08:00",
+  "scanVersion": "1.0.0",
+  "projectName": "hiprint-demo",
+  "projectDescription": "基于 node-hiprint 的 PDF/图片生成服务，使用 Fastify + Puppeteer + Docker",
+
+  "statistics": {
+    "totalFiles": 34,
+    "scannedFiles": 28,
+    "coveragePercent": 82.4,
+    "languages": {
+      "JavaScript": 14,
+      "Vue": 7,
+      "JSON": 4,
+      "YAML": 1,
+      "Markdown": 4,
+      "Dockerfile": 1,
+      "SCSS": 1,
+      "CSS": 1,
+      "HTML": 1
+    }
+  },
+
+  "modules": [
+    {
+      "name": "hiprint-demo",
+      "path": "hiprint-demo/",
+      "type": "frontend",
+      "language": "Vue 3 + JavaScript",
+      "framework": "Vite + Element Plus + vue-plugin-hiprint",
+      "entry": "src/main.js",
+      "testDir": null,
+      "hasTests": false,
+      "configFiles": ["package.json", "vite.config.js"],
+      "claudeMd": "hiprint-demo/CLAUDE.md",
+      "coverage": {
+        "entry": true,
+        "router": true,
+        "components": true,
+        "utils": true,
+        "tests": false,
+        "config": true
+      },
+      "keyFiles": [
+        "src/main.js",
+        "src/router/index.js",
+        "src/App.vue",
+        "src/components/LogisticsDesigner.vue",
+        "src/components/DraggableModules.vue",
+        "src/components/TemplateManager.vue",
+        "src/components/PaperSizeSelector.vue",
+        "src/views/Designer.vue",
+        "src/views/Home.vue",
+        "src/utils/hiprintService.js",
+        "src/utils/logisticsData.js",
+        "src/utils/defaultTemplate.js",
+        "vite.config.js",
+        "package.json"
+      ]
+    },
+    {
+      "name": "node-hiprint-pdf",
+      "path": "node-hiprint-pdf/",
+      "type": "backend",
+      "language": "JavaScript (ES Modules)",
+      "framework": "Fastify + Puppeteer",
+      "entry": "app.js",
+      "testDir": null,
+      "hasTests": false,
+      "configFiles": ["package.json", "Dockerfile", "docker-compose.yaml"],
+      "claudeMd": "node-hiprint-pdf/CLAUDE.md",
+      "coverage": {
+        "entry": true,
+        "routes": true,
+        "lib": true,
+        "plugins": true,
+        "tests": false,
+        "config": true,
+        "docker": true
+      },
+      "keyFiles": [
+        "app.js",
+        "routes/root.js",
+        "lib/puppeteer-html-export.js",
+        "plugins/cacheman.js",
+        "plugins/cors.js",
+        "plugins/static.js",
+        "plugins/sensible.js",
+        "public/vue-plugin-hiprint/index.html",
+        "package.json",
+        "Dockerfile",
+        "docker-compose.yaml"
+      ],
+      "apis": [
+        { "method": "GET", "path": "/", "description": "健康检查" },
+        { "method": "GET", "path": "/template", "description": "获取缓存模板" },
+        { "method": "POST", "path": "/pdf", "description": "生成 PDF" },
+        { "method": "POST", "path": "/img", "description": "生成图片" },
+        { "method": "POST", "path": "/html", "description": "生成 HTML" }
+      ]
+    }
+  ],
+
+  "rootFiles": [
+    "CLAUDE.md",
+    "AGENTS.md"
+  ],
+
+  "ignorePatterns": [
+    "node_modules/**",
+    ".git/**",
+    "dist/**",
+    "public/files/**",
+    "*.lock",
+    "*.log"
+  ],
+
+  "gaps": {
+    "missingTests": true,
+    "missingTestFramework": true,
+    "modules": [
+      {
+        "name": "hiprint-demo",
+        "gaps": ["tests", "e2e"]
+      },
+      {
+        "name": "node-hiprint-pdf",
+        "gaps": ["tests", "api-docs"]
+      }
+    ]
+  },
+
+  "nextSteps": [
+    "为前端模块配置 Vitest + Vue Test Utils 测试框架",
+    "为后端模块配置 Jest 测试框架",
+    "补充 API 文档（OpenAPI/Swagger）",
+    "添加 E2E 测试（Playwright/Cypress）"
+  ],
+
+  "truncated": false
+}

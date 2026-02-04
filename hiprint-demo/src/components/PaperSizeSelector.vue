@@ -55,32 +55,33 @@ const props = defineProps({
   modelValue: {
     type: Object,
     default: () => ({
-      width: 10,
-      height: 15
+      width: 100,
+      height: 150
     })
   }
 })
 
 const emit = defineEmits(['update:modelValue', 'change'])
 
+// hiprint 纸张尺寸单位为 mm
 const presetPapers = [
   {
     label: '10×10cm',
     value: '10x10',
-    width: 10,
-    height: 10
+    width: 100,
+    height: 100
   },
   {
     label: '10×15cm',
     value: '10x15',
-    width: 10,
-    height: 15
+    width: 100,
+    height: 150
   },
   {
     label: 'A4',
     value: 'A4',
-    width: 21,
-    height: 29.7
+    width: 210,
+    height: 297
   }
 ]
 
@@ -98,9 +99,10 @@ const currentPaperInfo = computed(() => {
 
 const currentPaperSize = computed(() => {
   if (selectedPaper.value === 'custom') {
+    // 用户输入 cm，转换为 mm
     return {
-      width: customWidth.value,
-      height: customHeight.value,
+      width: customWidth.value * 10,
+      height: customHeight.value * 10,
       paperType: `custom_${customWidth.value}x${customHeight.value}`
     }
   }
@@ -138,6 +140,7 @@ watch(
   () => props.modelValue,
   newVal => {
     if (newVal && newVal.width && newVal.height) {
+      // modelValue 来自模板，单位是 mm
       const found = presetPapers.find(
         p => p.width === newVal.width && p.height === newVal.height
       )
@@ -145,8 +148,9 @@ watch(
         selectedPaper.value = found.value
       } else {
         selectedPaper.value = 'custom'
-        customWidth.value = newVal.width
-        customHeight.value = newVal.height
+        // 显示给用户的是 cm
+        customWidth.value = newVal.width / 10
+        customHeight.value = newVal.height / 10
       }
     }
   },

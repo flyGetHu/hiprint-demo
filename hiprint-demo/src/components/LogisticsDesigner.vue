@@ -34,6 +34,10 @@
         导出 PDF
       </el-button>
 
+      <el-button type="warning" @click="showBackendDialog" :icon="Upload">
+        后端导出
+      </el-button>
+
       <div class="spacer"></div>
 
       <el-tag type="success">{{ paperType }}</el-tag>
@@ -205,6 +209,36 @@
         </el-button>
       </template>
     </el-dialog>
+
+    <!-- 后端导出对话框 -->
+    <el-dialog
+      v-model="showBackendExportDialog"
+      title="后端导出 PDF - 请求参数"
+      width="900px"
+      :close-on-click-modal="false"
+    >
+      <el-form label-width="100px">
+        <el-form-item label="接口地址">
+          <el-input v-model="backendServiceUrl" placeholder="http://localhost:3001/pdf" />
+        </el-form-item>
+        <el-form-item label="请求参数">
+          <el-input
+            v-model="backendRequestJson"
+            type="textarea"
+            :rows="20"
+            placeholder="请求 JSON"
+            class="json-textarea"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="copyRequestJson" :icon="DocumentCopy">复制 JSON</el-button>
+        <el-button @click="showBackendExportDialog = false">取消</el-button>
+        <el-button type="primary" @click="handleBackendPDF" :loading="backendLoading">
+          发送请求
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -218,15 +252,19 @@ import {
   RefreshRight,
   Edit,
   Plus,
-  Download
+  Download,
+  Upload,
+  DocumentCopy
 } from '@element-plus/icons-vue'
 import { hiprint, defaultElementTypeProvider } from 'vue-plugin-hiprint'
+import { snapdom } from '@zumer/snapdom'
+import { jsPDF } from 'jspdf'
+import printJS from 'print-js'
 import DraggableModules from './DraggableModules.vue'
 import TemplateManager from './TemplateManager.vue'
 import PaperSizeSelector from './PaperSizeSelector.vue'
 import { logisticsPrintData } from '../utils/logisticsData'
 import { defaultLogisticsTemplate } from '../utils/defaultTemplate'
-import { downloadPDF, checkServiceHealth } from '../utils/hiprintService'
 
 const emit = defineEmits(['print'])
 
@@ -239,12 +277,18 @@ const canUndo = ref(false)
 const canRedo = ref(false)
 const paperType = ref('10x15')
 const paperSize = ref({
-  width: 10,
-  height: 15,
+  width: 100,
+  height: 150,
   paperType: '10x15'
 })
 const templateManagerRef = ref(null)
 const activeCollapse = ref(['sender', 'receiver', 'waybill'])
+
+// 后端导出相关状态
+const showBackendExportDialog = ref(false)
+const backendServiceUrl = ref(import.meta.env.VITE_HIPRINT_SERVICE_URL || 'http://localhost:3001/pdf')
+const backendRequestJson = ref('')
+const backendLoading = ref(false)
 
 // 初始化设计器
 onMounted(() => {
@@ -309,21 +353,67 @@ function updateHistoryState() {
   }
 }
 
-// 预览打印
-function handlePreview() {
+// 预览打印 - 使用 print-js + snapdom
+async function handlePreview() {
   if (!hiprintTemplate.value) {
     ElMessage.error('设计器未初始化')
     return
   }
 
   try {
-    hiprintTemplate.value.print(printData.value, {
-      styleHandler: () => {
-        return '<style>.hiprint-printPaper{background:white;}</style>'
-      }
+    ElMessage.info('正在准备打印预览...')
+
+    // 获取当前纸张尺寸（mm）
+    const widthMM = paperSize.value.width
+    const heightMM = paperSize.value.height
+
+    // 创建临时容器渲染打印内容
+    const tempContainer = document.createElement('div')
+    tempContainer.style.position = 'absolute'
+    tempContainer.style.left = '-9999px'
+    tempContainer.style.top = '0'
+    tempContainer.style.background = 'white'
+    document.body.appendChild(tempContainer)
+
+    // 使用 hiprint 的 getHtml 获取渲染后的内容
+    const htmlJq = hiprintTemplate.value.getHtml(printData.value)
+    tempContainer.appendChild(htmlJq[0])
+
+    // 等待 DOM 渲染完成
+    await nextTick()
+    await new Promise(resolve => requestAnimationFrame(resolve))
+
+    // 使用 snapdom 截图
+    const targetEl = tempContainer.querySelector('.hiprint-printPaper') || tempContainer
+    const result = await snapdom(targetEl, { scale: 2 })
+    const canvas = await result.toCanvas()
+    const imageData = canvas.toDataURL('image/png')
+
+    // 清理临时容器
+    document.body.removeChild(tempContainer)
+
+    // 使用 print-js 打印图片
+    printJS({
+      printable: imageData,
+      type: 'image',
+      style: `
+        @page {
+          margin: 0;
+          size: ${widthMM}mm ${heightMM}mm;
+        }
+        @media print {
+          html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+        }
+      `,
+      imageStyle: `width: ${widthMM}mm; height: ${heightMM}mm; max-width: 100%; display: block;`
     })
+
     emit('print', printData.value)
   } catch (e) {
+    console.error('预览失败:', e)
     ElMessage.error('预览失败: ' + e.message)
   }
 }
@@ -393,8 +483,8 @@ function handleTemplateLoaded(template) {
     const panel = template.panels[0]
     paperType.value = panel.paperType || '10x15'
     paperSize.value = {
-      width: panel.width || 10,
-      height: panel.height || 15,
+      width: panel.width || 100,
+      height: panel.height || 150,
       paperType: panel.paperType || '10x15'
     }
   }
@@ -403,8 +493,8 @@ function handleTemplateLoaded(template) {
 function handleTemplateCleared() {
   paperType.value = '10x15'
   paperSize.value = {
-    width: 10,
-    height: 15,
+    width: 100,
+    height: 150,
     paperType: '10x15'
   }
 }
@@ -416,20 +506,158 @@ async function handleExportPDF() {
   }
 
   try {
-    const isServiceAvailable = await checkServiceHealth()
-    if (!isServiceAvailable) {
-      ElMessage.warning('hiprint 服务未启动，请先启动后端服务')
+    ElMessage.info('正在生成 PDF，请稍候...')
+
+    // 获取当前纸张尺寸（mm）
+    const widthMM = paperSize.value.width
+    const heightMM = paperSize.value.height
+
+    // 创建临时容器渲染打印内容
+    const tempContainer = document.createElement('div')
+    tempContainer.style.position = 'absolute'
+    tempContainer.style.left = '-9999px'
+    tempContainer.style.top = '0'
+    tempContainer.style.background = 'white'
+    document.body.appendChild(tempContainer)
+
+    // 使用 hiprint 的 getHtml 获取渲染后的内容
+    const htmlJq = hiprintTemplate.value.getHtml(printData.value)
+    tempContainer.appendChild(htmlJq[0])
+
+    // 等待 DOM 渲染完成
+    await nextTick()
+    await new Promise(resolve => requestAnimationFrame(resolve))
+
+    // 使用 snapdom 截图
+    const result = await snapdom(tempContainer.querySelector('.hiprint-printPaper') || tempContainer, {
+      scale: 2 // 提高清晰度
+    })
+
+    // 获取 canvas
+    const canvas = await result.toCanvas()
+
+    // 使用 jsPDF 生成 PDF
+    const pdf = new jsPDF({
+      orientation: widthMM > heightMM ? 'landscape' : 'portrait',
+      unit: 'mm',
+      format: [widthMM, heightMM]
+    })
+
+    // 将 canvas 转为图片添加到 PDF
+    const imgData = canvas.toDataURL('image/png')
+    pdf.addImage(imgData, 'PNG', 0, 0, widthMM, heightMM)
+
+    // 下载 PDF
+    pdf.save(`logistics_${Date.now()}.pdf`)
+
+    // 清理临时容器
+    document.body.removeChild(tempContainer)
+
+    ElMessage.success('PDF 导出成功')
+  } catch (e) {
+    console.error('PDF 导出错误:', e)
+    ElMessage.error('导出 PDF 失败: ' + e.message)
+  }
+}
+
+// 显示后端导出弹窗
+function showBackendDialog() {
+  if (!hiprintTemplate.value) {
+    ElMessage.error('设计器未初始化')
+    return
+  }
+
+  // 生成请求参数 JSON
+  const template = hiprintTemplate.value.getJson()
+  const widthMM = paperSize.value.width
+  const heightMM = paperSize.value.height
+
+  const requestBody = {
+    template: template,
+    printData: printData.value,
+    options: {
+      width: `${widthMM}mm`,
+      height: `${heightMM}mm`,
+      printBackground: true,
+      margin: {
+        top: '0mm',
+        bottom: '0mm',
+        left: '0mm',
+        right: '0mm'
+      }
+    }
+  }
+
+  backendRequestJson.value = JSON.stringify(requestBody, null, 2)
+  showBackendExportDialog.value = true
+}
+
+// 复制请求 JSON
+function copyRequestJson() {
+  const text = backendRequestJson.value
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text)
+      .then(() => ElMessage.success('已复制到剪贴板'))
+      .catch(() => fallbackCopy(text))
+  } else {
+    fallbackCopy(text)
+  }
+}
+
+function fallbackCopy(text) {
+  const textarea = document.createElement('textarea')
+  textarea.value = text
+  textarea.style.position = 'fixed'
+  textarea.style.left = '-9999px'
+  document.body.appendChild(textarea)
+  textarea.select()
+  try {
+    document.execCommand('copy')
+    ElMessage.success('已复制到剪贴板')
+  } catch (e) {
+    ElMessage.error('复制失败')
+  }
+  document.body.removeChild(textarea)
+}
+
+// 后端导出 PDF - 调用 node-hiprint-pdf 服务
+async function handleBackendPDF() {
+  backendLoading.value = true
+
+  try {
+    // 解析用户可能修改过的 JSON
+    let requestBody
+    try {
+      requestBody = JSON.parse(backendRequestJson.value)
+    } catch (parseError) {
+      ElMessage.error('JSON 格式错误，请检查')
+      backendLoading.value = false
       return
     }
 
-    const template = hiprintTemplate.value.getJson()
-    const filename = `logistics_${Date.now()}.pdf`
+    // 调用后端 API
+    const response = await fetch(backendServiceUrl.value, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(requestBody)
+    })
 
-    ElMessage.info('正在生成 PDF，请稍候...')
-    await downloadPDF(template, printData.value, filename)
-    ElMessage.success('PDF 导出成功')
+    const result = await response.json()
+
+    if (result.code === 1) {
+      ElMessage.success('PDF 生成成功')
+      window.open(result.data, '_blank')
+      showBackendExportDialog.value = false
+    } else {
+      throw new Error(result.msg || '生成失败')
+    }
   } catch (e) {
-    ElMessage.error('导出 PDF 失败: ' + e.message)
+    console.error('后端 PDF 导出错误:', e)
+    ElMessage.error('后端导出失败: ' + e.message)
+  } finally {
+    backendLoading.value = false
   }
 }
 
@@ -455,7 +683,7 @@ function handlePaperSizeChange(size) {
           templateManagerRef.value.setCurrentPaperSize(size)
         }
 
-        ElMessage.success(`纸张尺寸已更新为 ${size.width}×${size.height}cm`)
+        ElMessage.success(`纸张尺寸已更新为 ${size.width / 10}×${size.height / 10}cm`)
       })
     }
   } catch (e) {
@@ -550,5 +778,13 @@ onBeforeUnmount(() => {
 
 :deep(.el-collapse-item__header) {
   font-weight: bold;
+}
+
+.json-textarea {
+  :deep(.el-textarea__inner) {
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 12px;
+    line-height: 1.5;
+  }
 }
 </style>

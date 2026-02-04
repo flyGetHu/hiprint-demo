@@ -8,8 +8,9 @@ import App from './App.vue'
 import router from './router'
 import './assets/styles/global.scss'
 
-// 引入 hiprint 插件
+// 引入 hiprint 插件及样式
 import { hiPrintPlugin } from 'vue-plugin-hiprint'
+import 'vue-plugin-hiprint/dist/print-lock.css'
 
 const app = createApp(App)
 
