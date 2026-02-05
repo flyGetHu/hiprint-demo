@@ -14,8 +14,12 @@ class BrowserPool {
       "--disable-dev-shm-usage",
       "--disable-gpu",
       "--disable-extensions",
+      "--disable-background-timer-throttling",
+      "--disable-backgrounding-occluded-windows",
+      "--disable-renderer-backgrounding",
     ];
-    this.maxPages = 3; // 最大并发页面数（降低以提高稳定性）
+    // 可通过环境变量配置，默认 5
+    this.maxPages = parseInt(process.env.MAX_PAGES, 10) || 5;
     this.waitingQueue = []; // 等待队列
     this.activePages = 0;
     this.isShuttingDown = false;

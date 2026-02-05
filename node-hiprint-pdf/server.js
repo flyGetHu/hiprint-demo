@@ -6,6 +6,7 @@ import Fastify from "fastify";
 import path from "path";
 import { fileURLToPath } from "url";
 import AutoLoad from "@fastify/autoload";
+import browserPool from "./lib/browser-pool.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -38,6 +39,11 @@ const start = async () => {
 
     await fastify.listen({ port, host });
     console.log(`Server running at http://${host}:${port}`);
+
+    // 预热浏览器池，消除首次请求延迟
+    console.log("[Warmup] Pre-warming browser pool...");
+    await browserPool.getBrowser();
+    console.log("[Warmup] Browser pool ready, maxPages:", browserPool.maxPages);
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);
@@ -48,6 +54,7 @@ const start = async () => {
 const gracefulShutdown = async (signal) => {
   console.log(`Received ${signal}, shutting down gracefully...`);
   try {
+    await browserPool.close();
     await fastify.close();
     console.log("Server closed");
     process.exit(0);

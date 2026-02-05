@@ -26,10 +26,36 @@
   </body>
   <script defer>
     window.autoConnect = false;
-    const templateDiv = document.querySelector("#hiprintTemplate.hiprintTemplate")
-    function renderHtml() {
-      hiprint.init({});
-      // 模拟网络请求然后,创建模板
+    const templateDiv = document.querySelector("#hiprintTemplate.hiprintTemplate");
+
+    // 初始化 hiprint
+    hiprint.init({});
+
+    /**
+     * 使用注入的数据直接渲染（跳过 HTTP 请求）
+     */
+    window.renderWithData = function(data) {
+      try {
+        if (!data || !data.template) {
+          templateDiv.appendChild($(`<div class="hiprint-printTemplate">数据无效: 缺少 template</div>`)[0]);
+          return;
+        }
+        var hiprintTemplate = new hiprint.PrintTemplate({
+          template: data.template,
+        });
+        let htmlJq = hiprintTemplate.getHtml(data.printData || {});
+        templateDiv.innerHTML = ''; // 清空之前的内容
+        templateDiv.appendChild(htmlJq[0]);
+      } catch (error) {
+        console.error("renderWithData error:", error);
+        templateDiv.appendChild($(`<div class="hiprint-printTemplate">渲染失败: ${error.message}</div>`)[0]);
+      }
+    };
+
+    /**
+     * 兼容旧模式：通过 URL 参数 + HTTP 请求获取数据
+     */
+    function renderFromUrl() {
       const search = window.location.search;
       const id = search.split("=")[1];
       console.log(id);
@@ -41,17 +67,15 @@
           },
         })
         .then((res) => {
-          // // 创建模板
-          if (res.status == 200 && res.data.code == 1) {
+          if (res.status == 200 && res.data.code == 200) {
             var data = res.data.data;
             var hiprintTemplate = new hiprint.PrintTemplate({
               template: data.template,
             });
-            // 渲染模板
             let htmlJq = hiprintTemplate.getHtml(data.printData);
             templateDiv.appendChild(htmlJq[0]);
           } else {
-            templateDiv.appendChild($(`<div class="hiprint-printTemplate">获取模板失败:${res}</div>`)[0]);
+            templateDiv.appendChild($(`<div class="hiprint-printTemplate">获取模板失败:${JSON.stringify(res.data)}</div>`)[0]);
           }
         })
         .catch((error) => {
@@ -59,6 +83,10 @@
           templateDiv.appendChild($(`<div class="hiprint-printTemplate">${error}</div>`)[0]);
         });
     }
-    renderHtml();
+
+    // 如果 URL 有 id 参数，使用旧模式
+    if (window.location.search.includes("id=")) {
+      renderFromUrl();
+    }
   </script>
 </html>
