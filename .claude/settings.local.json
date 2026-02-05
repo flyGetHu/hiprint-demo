@@ -5,7 +5,8 @@
       "mcp__context7__query-docs",
       "Bash(npm install:*)",
       "WebSearch",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "Bash(curl:*)"
     ]
   }
 }
